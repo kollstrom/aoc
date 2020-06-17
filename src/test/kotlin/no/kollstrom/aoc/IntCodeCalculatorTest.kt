@@ -2,6 +2,8 @@ package no.kollstrom.aoc
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import java.lang.IllegalArgumentException
 
 internal class IntCodeCalculatorTest {
     @Test
@@ -30,5 +32,13 @@ internal class IntCodeCalculatorTest {
         val input = listOf(1, 1, 1, 4, 99, 5, 6, 0, 99)
         val expected = listOf(30, 1, 1, 4, 2, 5, 6, 0, 99)
         assertEquals(expected, IntCodeCalculator.calculate(input))
+    }
+
+    @Test
+    internal fun `Non-opcode crashes program`() {
+        val input = listOf(23, 34, 45)
+        assertThrows<InvalidOpCodeException> ("Should throw an exception") {
+            IntCodeCalculator.calculate(input)
+        }
     }
 }

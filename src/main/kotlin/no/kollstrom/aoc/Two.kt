@@ -1,17 +1,30 @@
 package no.kollstrom.aoc
 
+import no.kollstrom.aoc.OpCode.*
+
 // TODO: Implement multiline intcode programs
 // TODO: Candidate for recursion?
 
 typealias Code = Int
 
+@ExperimentalStdlibApi
 object IntCodeCalculator {
     fun calculate(input: List<Int>): List<Int> {
-        val opCode = input.opCode()
-        val inputOne = input[1]
-        val inputTwo = input[2]
-        val outputPosition = input[3]
-        return emptyList()
+        val processed = input.splitIntoOperations()
+                .asSequence()
+                .takeWhile { it.opCode() != HALT }
+                .map { op ->
+                    val inputOne = op[op[1]]
+                    val inputTwo = op[op[2]]
+                    val calculation = when (op.opCode()) {
+                        ADD -> inputOne + inputTwo
+                        MULTIPLY -> inputOne * inputTwo
+                        else -> throw InvalidOpCodeException("That operation code is invalid", op.first())
+                    }
+                    val outputPosition = op[3]
+                    op.mapIndexed { index, value -> if (index == outputPosition) calculation else value }
+                }.flatten().toList()
+        return processed + input.slice(processed.size until input.size)
     }
 }
 
@@ -19,7 +32,6 @@ fun List<Int>.opCode(): OpCode = OpCode.getByCode(this.first())
 
 @ExperimentalStdlibApi
 fun List<Int>.splitIntoOperations(): List<List<Int>> {
-    // TODO: Make this simpler. Maybe split out a fold version and one simpler one
     return foldIndexed(mutableListOf<MutableList<Int>>()) { index, operations, value ->
         if (index % 4 == 0) {
             operations.add(mutableListOf(value))
